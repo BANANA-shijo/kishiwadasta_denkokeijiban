@@ -1,0 +1,2 @@
+# kishiwadasta_denkokeijiban
+京阪風の岸和田駅電光掲示板です
