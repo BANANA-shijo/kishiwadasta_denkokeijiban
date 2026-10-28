@@ -21,5 +21,13 @@ const noboriTimetable = [
       { isStandby: false, arrTime: "", depTime: "13:06", trainType: "サザン", trackNum: "3", destination: "なんば", cars: "8" },
       { isStandby: false, arrTime: "13:01", depTime: "13:07", trainType: "普通", trackNum: "4", destination: "なんば", cars: "4" },
       { isStandby: false, arrTime: "", depTime: "13:15", trainType: "空港急行", trackNum: "3", destination: "なんば", cars: "8" },
-      { isStandby: false, arrTime: "13:19", depTime: "13:22", trainType: "普通", trackNum: "4", destination: "なんば", cars: "6" }
+      { isPass: true, depTime: "13:21", trackNum: "3" },
+      { isStandby: false, arrTime: "13:19", depTime: "13:22", trainType: "普通", trackNum: "4", destination: "なんば", cars: "6" },
+      { isStandby: false, arrTime: "", depTime: "13:27", trainType: "空港急行", trackNum: "3", destination: "なんば", cars: "8" },
+      { isStandby: false, arrTime: "", depTime: "13:36", trainType: "サザン", trackNum: "3", destination: "なんば", cars: "8" },
+      { isStandby: false, arrTime: "13:31", depTime: "13:37", trainType: "普通", trackNum: "4", destination: "なんば", cars: "4" },
+      { isStandby: false, arrTime: "", depTime: "13:45", trainType: "空港急行", trackNum: "3", destination: "なんば", cars: "8" },
+      { isPass: true, depTime: "13:51", trackNum: "3" },
+      { isStandby: false, arrTime: "13:49", depTime: "13:52", trainType: "普通", trackNum: "4", destination: "なんば", cars: "4" },
+      { isStandby: false, arrTime: "", depTime: "13:57", trainType: "空港急行", trackNum: "3", destination: "なんば", cars: "8" },
 ];
