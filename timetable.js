@@ -27,6 +27,32 @@ const kudariTimetable = [
       { isStandby: false, arrTime: "", depTime: "14:50", trainType: "空港急行", trainTypeEn: "Airport-exp", trackNum: "2", destination: "関西空港", destinationEn: "Kansai airport", cars: "8" },
       { isStandby: true,  arrTime: "", depTime: "14:56", trainType: "ラピートβ", trainTypeEn: "rapit β", trackNum: "2", destination: "関西空港", destinationEn: "Kansai airport", cars: "6" },
       { isStandby: true,  arrTime: "14:52", depTime: "14:57", trainType: "普通", trainTypeEn: "Local", trackNum: "1", destination: "和歌山市", destinationEn: "Wakayamashi", cars: "4" },
+
+      { isStandby: false, arrTime: "", depTime: "15:04", trainType: "空港急行", trainTypeEn: "Airport-exp", trackNum: "2", destination: "関西空港", destinationEn: "Kansai airport", cars: "8" },
+      { isStandby: false, arrTime: "", depTime: "15:12", trainType: "サザン", trainTypeEn: "Southern", trackNum: "2", destination: "和歌山市", destinationEn: "Wakayamashi", cars: "8" },
+      { isStandby: true,  arrTime: "15:07", depTime: "15:13", trainType: "普通", trainTypeEn: "Local", trackNum: "1", destination: "和歌山市", destinationEn: "Wakayamashi", cars: "4" },
+      { isStandby: false, arrTime: "", depTime: "15:20", trainType: "空港急行", trainTypeEn: "Airport-exp", trackNum: "2", destination: "関西空港", destinationEn: "Kansai airport", cars: "8" },
+      { isPass: true, depTime: "15:26", trackNum: "2" },
+      { isStandby: true,  arrTime: "15:22", depTime: "15:27", trainType: "普通", trainTypeEn: "Local", trackNum: "1", destination: "和歌山市", destinationEn: "Wakayamashi", cars: "6" },
+      { isStandby: false, arrTime: "", depTime: "15:34", trainType: "空港急行", trainTypeEn: "Airport-exp", trackNum: "2", destination: "関西空港", destinationEn: "Kansai airport", cars: "8" },
+      { isStandby: false, arrTime: "", depTime: "15:42", trainType: "サザン", trainTypeEn: "Southern", trackNum: "2", destination: "和歌山市", destinationEn: "Wakayamashi", cars: "8" },
+      { isStandby: true,  arrTime: "15:37", depTime: "15:43", trainType: "普通", trainTypeEn: "Local", trackNum: "1", destination: "和歌山市", destinationEn: "Wakayamashi", cars: "4" },
+      { isStandby: false, arrTime: "", depTime: "15:50", trainType: "空港急行", trainTypeEn: "Airport-exp", trackNum: "2", destination: "関西空港", destinationEn: "Kansai airport", cars: "6" },
+      { isStandby: true,  arrTime: "", depTime: "15:56", trainType: "ラピートβ", trainTypeEn: "rapit β", trackNum: "2", destination: "関西空港", destinationEn: "Kansai airport", cars: "6" },
+      { isStandby: true,  arrTime: "15:52", depTime: "15:57", trainType: "普通", trainTypeEn: "Local", trackNum: "1", destination: "和歌山市", destinationEn: "Wakayamashi", cars: "4" },
+
+      { isStandby: false, arrTime: "", depTime: "16:04", trainType: "空港急行", trainTypeEn: "Airport-exp", trackNum: "2", destination: "関西空港", destinationEn: "Kansai airport", cars: "8" },
+      { isStandby: false, arrTime: "", depTime: "16:12", trainType: "サザン", trainTypeEn: "Southern", trackNum: "2", destination: "和歌山市", destinationEn: "Wakayamashi", cars: "8" },
+      { isStandby: true,  arrTime: "16:07", depTime: "16:13", trainType: "普通", trainTypeEn: "Local", trackNum: "1", destination: "和歌山市", destinationEn: "Wakayamashi", cars: "6" },
+      { isStandby: false, arrTime: "", depTime: "16:20", trainType: "空港急行", trainTypeEn: "Airport-exp", trackNum: "2", destination: "関西空港", destinationEn: "Kansai airport", cars: "8" },
+      { isPass: true, depTime: "16:26", trackNum: "2" },
+      { isStandby: true,  arrTime: "16:22", depTime: "16:27", trainType: "普通", trainTypeEn: "Local", trackNum: "1", destination: "和歌山市", destinationEn: "Wakayamashi", cars: "4" },
+      { isStandby: false, arrTime: "", depTime: "16:34", trainType: "空港急行", trainTypeEn: "Airport-exp", trackNum: "2", destination: "関西空港", destinationEn: "Kansai airport", cars: "8" },
+      { isStandby: false, arrTime: "", depTime: "16:42", trainType: "サザン", trainTypeEn: "Southern", trackNum: "2", destination: "和歌山市", destinationEn: "Wakayamashi", cars: "8" },
+      { isStandby: true,  arrTime: "16:37", depTime: "16:43", trainType: "普通", trainTypeEn: "Local", trackNum: "1", destination: "和歌山市", destinationEn: "Wakayamashi", cars: "4" },
+      { isStandby: false, arrTime: "", depTime: "16:50", trainType: "空港急行", trainTypeEn: "Airport-exp", trackNum: "2", destination: "関西空港", destinationEn: "Kansai airport", cars: "8" },
+      { isStandby: true,  arrTime: "", depTime: "16:56", trainType: "ラピートβ", trainTypeEn: "rapit β", trackNum: "2", destination: "関西空港", destinationEn: "Kansai airport", cars: "6" },
+      { isStandby: true,  arrTime: "16:52", depTime: "16:57", trainType: "普通", trainTypeEn: "Local", trackNum: "1", destination: "和歌山市", destinationEn: "Wakayamashi", cars: "4" },
 ];
 
 // 上りダイヤ (3番線・4番線)
