@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>岸和田駅 電光掲示板＆自動放送システム</title>
+  <!-- Google Fonts: M PLUS 1p (Medium: 500) の読み込み -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #000;
+      font-family: 'M PLUS 1p', 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Wingdings 3 フォントの定義 */
+    @font-face {
+      font-family: 'Wingdings3Font';
+      src: local('Wingdings 3');
+    }
+
+    /* ==========================================
+       ★ 電光掲示板（メイン画面エリア） ★
+       ========================================== */
+    .boards-wrapper {
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    /* 各電光掲示板ブロック */
+    .board-section {
+      width: 100vw;
+      position: relative;
+      background-color: #000;
+      line-height: 0;
+    }
+
+    /* 板画像（横幅100%ピッタリ・アスペクト比維持） */
+    .board-bg-img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* 電光掲示板の文字オーバーレイ領域 */
+    .board-content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      line-height: normal;
+      font-family: 'M PLUS 1p', sans-serif;
+    }
+
+    /* --- 各列共通要素 --- */
+
+    /* 番線表示用背景バッジ */
+    .track-badge {
+      position: absolute;
+      top: var(--top-pct);
+      height: 20%;
+      background-color: #000066;
+      z-index: 20;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-family: 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
+      font-weight: 700;
+      font-size: 4.2vw;
+      white-space: nowrap;
+    }
+
+    .track-badge-left {
+      left: 7.5%;
+      width: 6.25%;
+    }
+
+    .track-badge-right {
+      left: 92.5%;
+      width: 6.25%;
+    }
+
+    /* Wingdings 3 矢印 */
+    .track-arrow {
+      font-family: 'Wingdings3Font', 'Wingdings 3', sans-serif;
+      font-size: 0.5em;
+      font-weight: normal;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+
+    .arrow-left::before { content: "\D9"; }
+    .arrow-right::before { content: "\DA"; }
+
+    /* --- 時刻描画用パーツ --- */
+    .time-part {
+      position: absolute;
+      top: calc(var(--top-pct) + 10%);
+      font-size: 3vw;
+      font-weight: 500;
+      color: #ffffff;
+      white-space: nowrap;
+      z-index: 5;
+      font-family: 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
+    }
+
+    .time-hh {
+      left: 15.625%;
+      transform: translate(-50%, -50%);
+    }
+
+    .time-colon {
+      left: 18.125%;
+      transform: translate(-50%, -50%);
+    }
+
+    .time-mm {
+      left: 20.625%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* --- 種別・行先共通バッジスタイル --- */
+    .badge-container {
+      position: absolute;
+      top: var(--top-pct);
+      height: 20%;
+      border-radius: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .type-badge {
+      left: 22.5%;
+      width: 10%;
+    }
+
+    .dest-badge {
+      left: 33.75%;
+      width: 16.25%;
+      background-color: #0000FF;
+    }
+
+    /* --- バッジ内 2行テキスト共通 --- */
+    .text-ja, .text-en {
+      position: absolute;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #ffffff;
+      white-space: nowrap;
+      font-family: 'M PLUS 1p', sans-serif;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .text-ja {
+      top: 37.5%;
+      font-size: 3.0vw;
+    }
+
+    .text-ja .wide-text {
+      letter-spacing: 0.6em;
+      margin-right: -0.6em;
+      display: inline-block;
+    }
+
+    .text-ja .narrow-text {
+      display: inline-block;
+      transform: scaleX(0.70);
+      transform-origin: center;
+    }
+
+    .text-ja .small-text {
+      font-size: 0.6em;
+      vertical-align: top;
+      display: inline-block;
+      line-height: 1.1;
+      margin-top: 0.25em;
+    }
+
+    .text-en {
+      top: 87.5%;
+      font-size: 1.1vw;
+    }
+
+    /* --- 両数表示用パーツ --- */
+    .cars-part {
+      position: absolute;
+      top: calc(var(--top-pct) + 10%);
+      left: 55%;
+      transform: translate(-50%, -50%);
+      font-size: 3.0vw;
+      font-weight: 500;
+      color: #ffffff;
+      white-space: nowrap;
+      z-index: 5;
+    }
+
+    .cars-part .unit-ja {
+      font-size: 0.7em;
+      vertical-align: 0.08em;
+      display: inline-block;
+      margin-bottom: 0;
+    }
+
+    .cars-part .unit-en {
+      font-size: 0.4em;
+      vertical-align: baseline;
+      display: inline-block;
+      margin-left: 0.2em;
+    }
+
+    /* --- 電車到着/通過 サインバッジ --- */
+    .approaching-badge {
+      position: absolute;
+      top: var(--top-pct);
+      left: 57.85%;
+      width: 34.65%;
+      height: 20%;
+      background-color: #ffffff;
+      z-index: 30;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8vw;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .approaching-badge.arrive-color {
+      color: #ff6600;
+    }
+
+    .approaching-badge.pass-color {
+      color: #ff0000;
+    }
+
+    /* --- 停車駅・接続案内表示領域（上段） --- */
+    .stops-scroll-area {
+      position: absolute;
+      top: var(--top-pct);
+      height: 10%;
+      left: 58.75%;
+      right: 2%;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      z-index: 10;
+      font-size: 1.5vw;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .stops-header {
+      flex-shrink: 0;
+      z-index: 2;
+      background-color: #000;
+      padding-right: 0.2em;
+      color: #00ff00;
+    }
+
+    .stops-ticker-wrapper {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .stops-ticker-text {
+      display: inline-block;
+      position: absolute;
+      left: 0;
+      white-space: nowrap;
+      will-change: transform;
+    }
+
+    .stops-ticker-text.stops-color {
+      color: #00ff00;
+    }
+
+    .stops-ticker-text.connect-color {
+      color: #ff0000;
+    }
+
+    /* --- 乗車位置案内表示領域（下段） --- */
+    .cars-info-area {
+      position: absolute;
+      top: calc(var(--top-pct) + 10%);
+      height: 10%;
+      left: 58.75%;
+      right: 2%;
+      display: flex;
+      align-items: center;
+      z-index: 10;
+      color: #ff9900;
+      font-size: 1.5vw;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* ==========================================
+       ★ 下部余白エリア（時間設定パネル） ★
+       ========================================== */
+    .bottom-panel {
+      flex: 1;
+      width: 100vw;
+      background-color: #111;
+      border-top: 2px solid #333;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #fff;
+    }
+
+    .left-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .clock-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .clock-display {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ffdd57;
+      font-family: 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
+      letter-spacing: 2px;
+    }
+
+    .time-inputs {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    input[type="time"] {
+      background-color: #1a1a1a;
+      border: 1px solid #555;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      background-color: #00d1b2;
+      color: #121212;
+      border: none;
+      padding: 7px 14px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover { background-color: #00b89c; }
+    
+    .btn-secondary {
+      background-color: #444;
+      color: #fff;
+    }
+    .btn-secondary:hover { background-color: #555; }
+
+    .btn-reverb {
+      background-color: #3273dc;
+      color: #fff;
+    }
+    .btn-reverb.active {
+      background-color: #ff3860;
+    }
+
+    .log-box {
+      color: #00ffcc;
+      font-family: monospace;
+      font-size: 0.85rem;
+      background: rgba(0,0,0,0.5);
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid #222;
+      max-width: 300px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 上に詰めて配置する電光掲示板エリア -->
+  <div class="boards-wrapper">
+    <!-- 上り掲示板 (3・4番線) -->
+    <div class="board-section">
+      <img id="imgNobori" class="board-bg-img" alt="上り電光掲示板">
+      <div id="noboriContent" class="board-content"></div>
+    </div>
+
+    <!-- 下り掲示板 (1・2番線) -->
+    <div class="board-section">
+      <img id="imgKudari" class="board-bg-img" alt="下り電光掲示板">
+      <div id="kudariContent" class="board-content"></div>
+    </div>
+  </div>
+
+  <!-- 下部コントロールパネル -->
+  <div class="bottom-panel">
+    <div class="left-controls">
+      <button type="button" id="toggleReverbBtn" class="btn btn-reverb">リバーブ: OFF</button>
+      <div id="logBox" class="log-box">システム起動中...</div>
+    </div>
+
+    <div class="clock-container">
+      <div id="clockDisplay" class="clock-display">00:00:00</div>
+      <div class="time-inputs">
+        <input type="time" id="customTime" step="1">
+        <button type="button" id="setTimeBtn" class="btn">時刻変更</button>
+        <button type="button" id="resetTimeBtn" class="btn btn-secondary">リアルタイム</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BASE_URL = "https://banana-shijo.github.io/kishiwadasta_denkokeijiban/";
+
+    // 路線駅順定義
+    const NOBORI_STATIONS = ["春木", "泉大津", "羽衣", "堺", "天下茶屋", "新今宮", "なんば"];
+    const KUDARI_STATIONS_MAIN = ["貝塚", "泉佐野", "尾崎", "みさき公園", "和歌山大学前", "和歌山市"];
+    const KUDARI_STATIONS_SOUTHERN = ["泉佐野", "尾崎", "みさき公園", "和歌山大学前", "和歌山市"];
+
+    // 音声ファイルと駅名のマッピング表（単体・「には」・「で」）
+    const STATION_AUDIO_MAP = {
+      "なんば": "namba.ogg",
+      "新今宮": "shinimamiya.ogg",
+      "天下茶屋": "tencha.ogg",
+      "堺": "sakai.ogg",
+      "羽衣": "hagoromo.ogg",
+      "泉大津": "otsu.ogg",
+      "春木": "haruki.ogg",
+      "貝塚": "kaiduka.ogg",
+      "泉佐野": "sano.ogg",
+      "りんくうタウン": "rinku.ogg",
+      "関西空港": "kanku.ogg",
+      "尾崎": "ozaki.ogg",
+      "みさき公園": "misaki.ogg",
+      "和歌山大学前": "wadaimae.ogg",
+      "和歌山市": "wakayamashi.ogg"
+    };
+
+    const STATION_NIHA_AUDIO_MAP = {
+      "泉大津": "otsu_niha.ogg",
+      "なんば": "namba_niha.ogg",
+      "泉佐野": "sano_niha.ogg",
+      "関西空港": "kanku_niha.ogg",
+      "和歌山市": "wakayamashi_niha.ogg"
+    };
+
+    const STATION_DE_AUDIO_MAP = {
+      "泉大津": "otsu_de.ogg",
+      "なんば": "namba_de.ogg",
+      "泉佐野": "sano_de.ogg",
+      "関西空港": "kanku_de.ogg",
+      "和歌山市": "wakayamashi_de.ogg",
+      "堺": "sakai_de.ogg",
+      "尾崎": "ozaki_de.ogg"
+    };
+
+    const TYPE_NI_AUDIO_MAP = {
+      "普通": "1local_ni.ogg",
+      "普通車": "1local_ni.ogg",
+      "準急": "2semi_ni.ogg",
+      "区急": "3sub_ni.ogg",
+      "区間急行": "3sub_ni.ogg",
+      "急行": "4exp_ni.ogg",
+      "空港急行": "5airportexp_ni.ogg",
+      "サザン": "6southern_ni.ogg",
+      "特急サザン": "6southern_ni.ogg",
+      "ラピートβ": "7rapit_ni.ogg",
+      "ラピート": "7rapit_ni.ogg"
+    };
+
+    function renderBoardRows(containerId, prefix) {
+      const container = document.getElementById(containerId);
+      let html = "";
+      const rowTops = ["20%", "40%", "60%", "80%"];
+
+      for (let i = 1; i <= 4; i++) {
+        const top = rowTops[i - 1];
+        html += `
+          <div id="${prefix}_row${i}_track_left" class="track-badge track-badge-left" style="--top-pct: ${top}; display: none;"></div>
+          <div id="${prefix}_row${i}_track_right" class="track-badge track-badge-right" style="--top-pct: ${top}; display: none;"></div>
+
+          <span id="${prefix}_row${i}_hh" class="time-part time-hh" style="--top-pct: ${top};">--</span>
+          <span id="${prefix}_row${i}_colon" class="time-part time-colon" style="--top-pct: ${top};">:</span>
+          <span id="${prefix}_row${i}_mm" class="time-part time-mm" style="--top-pct: ${top};">--</span>
+
+          <div id="${prefix}_row${i}_type_badge" class="badge-container type-badge" style="--top-pct: ${top}; display: none;">
+            <span id="${prefix}_row${i}_type_ja" class="text-ja"></span>
+            <span id="${prefix}_row${i}_type_en" class="text-en"></span>
+          </div>
+
+          <div id="${prefix}_row${i}_dest_badge" class="badge-container dest-badge" style="--top-pct: ${top}; display: none;">
+            <span id="${prefix}_row${i}_dest_ja" class="text-ja"></span>
+            <span id="${prefix}_row${i}_dest_en" class="text-en"></span>
+          </div>
+
+          <div id="${prefix}_row${i}_cars" class="cars-part" style="--top-pct: ${top};"></div>
+
+          <!-- 到着・通過 サイン表示バッジ -->
+          <div id="${prefix}_row${i}_approaching_badge" class="approaching-badge" style="--top-pct: ${top}; display: none;"></div>
+
+          <div id="${prefix}_row${i}_stops_area" class="stops-scroll-area" style="--top-pct: ${top}; display: none;">
+            <span id="${prefix}_row${i}_stops_header" class="stops-header">停車駅：</span>
+            <div id="${prefix}_row${i}_wrapper" class="stops-ticker-wrapper">
+              <span id="${prefix}_row${i}_stops_text" class="stops-ticker-text"></span>
+            </div>
+          </div>
+
+          <div id="${prefix}_row${i}_car_guide" class="cars-info-area" style="--top-pct: ${top}; display: none;"></div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    renderBoardRows("noboriContent", "nobori");
+    renderBoardRows("kudariContent", "kudari");
+
+    function getTypeColor(trainType) {
+      switch (trainType) {
+        case "普通":
+        case "普通車":
+          return "#707070";
+        case "準急":
+          return "#0042ff";
+        case "区急":
+        case "区間急行":
+          return "#00b658";
+        case "急行":
+        case "空港急行":
+          return "#FF9933";
+        case "サザン":
+        case "ラピート":
+        case "ラピートβ":
+          return "#ff0000";
+        default:
+          return "#707070";
+      }
+    }
+
+    function formatTrainTypeJa(trainType) {
+      if (trainType === "普通" || trainType === "普通車" || trainType === "準急") {
+        const text = trainType === "普通車" ? "普通" : trainType;
+        return `<span class="wide-text">${text}</span>`;
+      }
+      if (trainType === "ラピートβ" || trainType === "ラピート") {
+        return `<span class="narrow-text">${trainType}</span>`;
+      }
+      if (trainType === "空港急行") {
+        return `<span class="small-text">空港</span>急行`;
+      }
+      if (trainType === "区間急行" || trainType === "区急") {
+        return `<span class="small-text">区間</span>急行`;
+      }
+      return trainType;
+    }
+
+    function getDefaultTypeEnglish(trainType) {
+      switch (trainType) {
+        case "普通":
+        case "普通車":
+          return "Local";
+        case "準急":
+          return "Semi-Exp.";
+        case "区急":
+        case "区間急行":
+          return "Sub. Exp.";
+        case "急行":
+          return "Express";
+        case "空港急行":
+          return "Airport-exp";
+        case "サザン":
+          return "Southern";
+        case "ラピート":
+        case "ラピートβ":
+          return "rapit β";
+        default:
+          return trainType;
+      }
+    }
+
+    function getDefaultDestEnglish(destination) {
+      switch (destination) {
+        case "なんば":
+          return "Namba";
+        case "泉佐野":
+          return "Izumisano";
+        case "関西空港":
+          return "Kansai airport";
+        case "羽倉崎":
+          return "Hagurazaki";
+        case "樽井":
+          return "Tarui";
+        case "みさき公園":
+          return "Misaki-koen";
+        case "和歌山市":
+          return "Wakayamashi";
+        case "和歌山港":
+          return "Wakayamako";
+        default:
+          return destination;
+      }
+    }
+
+    // ★ 電光掲示板の停車駅文字列生成（修正：ラピートβ・サザン・関空行き優先）
+    function getStationList(item) {
+      if (item.stopsJa) return item.stopsJa;
+
+      const track = String(item.trackNum);
+      const isNobori = (track === "3" || track === "4");
+      const dest = item.destination;
+      const type = item.trainType;
+
+      if (type === "普通" || type === "普通車") {
+        return "各駅に停車します。";
+      }
+
+      let list = [];
+      if (isNobori) {
+        if (type === "急行") {
+          list = ["泉大津", "羽衣", "堺", "天下茶屋", "新今宮", "なんば"];
+        } else if (["サザン", "ラピート", "ラピートβ"].includes(type)) {
+          list = ["堺", "天下茶屋", "新今宮", "なんば"];
+        } else {
+          list = [...NOBORI_STATIONS];
+        }
+      } else {
+        if (["ラピート", "ラピートβ"].includes(type)) {
+          // ★ ラピート/ラピートβ（下り）：貝塚は通過
+          list = ["泉佐野", "りんくうタウン", "関西空港"];
+        } else if (dest === "関西空港") {
+          // 空港急行等（下り）：貝塚に停車
+          list = ["貝塚", "泉佐野", "りんくうタウン", "関西空港"];
+        } else if (type === "サザン") {
+          list = [...KUDARI_STATIONS_SOUTHERN];
+        } else {
+          list = [...KUDARI_STATIONS_MAIN];
+          const destIdx = list.indexOf(dest);
+          if (destIdx !== -1) {
+            list = list.slice(0, destIdx + 1);
+          }
+        }
+      }
+
+      if (list.length === 0) return "各駅に停車します。";
+      return list.join("、") + "。";
+    }
+
+    function getConnectList(item) {
+      if (!item.connections || item.connections.length === 0) return "";
+
+      let aheadText = "";
+      const connectParts = [];
+
+      item.connections.forEach(conn => {
+        if (conn.type === "ahead") {
+          aheadText = `${conn.station}には先着。`;
+        } else if (conn.type === "connect") {
+          connectParts.push(`${conn.station}で${conn.targetType}に連絡。`);
+        }
+      });
+
+      return aheadText + connectParts.join("");
+    }
+
+    function getCarGuideText(item, isJapaneseMode) {
+      const type = item.trainType;
+      const cars = item.cars;
+
+      if (type === "ラピート" || type === "ラピートβ") {
+        return "全車指定席 ラピートの乗車位置";
+      }
+
+      if (type === "サザン") {
+        if (isJapaneseMode) {
+          return "自由席車 4扉 乗車位置 赤○5〜○8";
+        } else {
+          return "1号車から4号車は指定席車";
+        }
+      }
+
+      const num = parseInt(cars, 10);
+      if (num === 4) {
+        return "4扉 乗車位置 赤○3〜○6";
+      } else if (num === 6) {
+        return "4扉 乗車位置 赤○2〜○7";
+      } else if (num === 8) {
+        return "4扉 乗車位置 赤○1〜○8";
+      }
+      return `4扉 乗車位置 赤○1〜○${num}`;
+    }
+
+    // JSによる物理スクロール制御
+    const scrollStates = {};
+
+    function updateJSScroll(wrapper, text, isConnectMode) {
+      const id = wrapper.id;
+      if (!scrollStates[id]) {
+        scrollStates[id] = { text: "", isConnect: false, startTime: 0, textElem: null };
+      }
+
+      const state = scrollStates[id];
+      const isChanged = (state.text !== text) || (state.isConnect !== isConnectMode);
+
+      if (isChanged) {
+        state.text = text;
+        state.isConnect = isConnectMode;
+        state.startTime = performance.now();
+
+        wrapper.innerHTML = "";
+        const elem = document.createElement("span");
+        elem.className = "stops-ticker-text " + (isConnectMode ? "connect-color" : "stops-color");
+        elem.textContent = text;
+        wrapper.appendChild(elem);
+        state.textElem = elem;
+      }
+
+      if (!state.textElem) return;
+
+      const now = performance.now();
+      const elapsedSec = (now - state.startTime) / 1000;
+
+      const SPEED_PX_PER_SEC = 110;
+
+      if (isConnectMode) {
+        const PAUSE_SEC = 1.0;
+        const textWidth = state.textElem.scrollWidth;
+
+        if (elapsedSec < PAUSE_SEC) {
+          state.textElem.style.transform = `translateX(0px)`;
+        } else {
+          const moveTime = elapsedSec - PAUSE_SEC;
+          const currentX = -(moveTime * SPEED_PX_PER_SEC);
+          state.textElem.style.transform = `translateX(${currentX}px)`;
+        }
+      } else {
+        const containerWidth = wrapper.clientWidth || 300;
+        const textWidth = state.textElem.scrollWidth;
+        const totalDist = containerWidth + textWidth;
+
+        const currentDist = (elapsedSec * SPEED_PX_PER_SEC) % totalDist;
+        const currentX = containerWidth - currentDist;
+
+        state.textElem.style.transform = `translateX(${currentX}px)`;
+      }
+    }
+
+    // 物理レンダリングループ
+    function scrollRenderLoop() {
+      const now = getCurrentTime();
+      updateBoardDisplay(now);
+      requestAnimationFrame(scrollRenderLoop);
+    }
+
+    function updateTrackBadge(trackNum, leftElem, rightElem) {
+      const track = String(trackNum);
+
+      leftElem.style.display = 'flex';
+      rightElem.style.display = 'flex';
+
+      if (track === "1" || track === "3") {
+        leftElem.innerHTML = '';
+        rightElem.innerHTML = `${track}<span class="track-arrow arrow-right"></span>`;
+      } else if (track === "2" || track === "4") {
+        leftElem.innerHTML = `<span class="track-arrow arrow-left"></span>${track}`;
+        rightElem.innerHTML = '';
+      } else {
+        leftElem.innerHTML = '';
+        rightElem.innerHTML = '';
+      }
+    }
+
+    function loadBoardImages() {
+      const imgNobori = document.getElementById('imgNobori');
+      const imgKudari = document.getElementById('imgKudari');
+
+      imgNobori.src = BASE_URL + "nobori.png?v=" + Date.now();
+      imgKudari.src = BASE_URL + "kudari.png?v=" + Date.now();
+
+      imgNobori.onerror = () => { imgNobori.src = "nobori.png"; };
+      imgKudari.onerror = () => { imgKudari.src = "kudari.png"; };
+    }
+
+    let timeOffset = 0;
+    let isCustomTime = false;
+
+    function getCurrentTime() {
+      return new Date(Date.now() + timeOffset);
+    }
+
+    function updateClock() {
+      const now = getCurrentTime();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      
+      const clockDisplay = document.getElementById('clockDisplay');
+      clockDisplay.textContent = `${h}:${m}:${s}`;
+      clockDisplay.style.color = isCustomTime ? '#ff9800' : '#ffdd57';
+
+      checkBroadcast(now);
+    }
+
+    setInterval(updateClock, 1000);
+
+    document.getElementById('setTimeBtn').addEventListener('click', () => {
+      const timeVal = document.getElementById('customTime').value;
+      if (!timeVal) return;
+      const [hours, minutes, seconds] = timeVal.split(':').map(Number);
+      const targetDate = new Date();
+      targetDate.setHours(hours, minutes, seconds || 0, 0);
+      timeOffset = targetDate.getTime() - Date.now();
+      isCustomTime = true;
+      playedBroadcasts.clear();
+      blankUntilTimestamps = { nobori: 0, kudari: 0 };
+      lastUpcomingIds = { nobori: "", kudari: "" };
+      updateClock();
+    });
+
+    document.getElementById('resetTimeBtn').addEventListener('click', () => {
+      timeOffset = 0;
+      isCustomTime = false;
+      document.getElementById('customTime').value = '';
+      playedBroadcasts.clear();
+      blankUntilTimestamps = { nobori: 0, kudari: 0 };
+      lastUpcomingIds = { nobori: "", kudari: "" };
+      updateClock();
+    });
+
+    let timetables = [];
+
+    function getNextStopInfo(trackNum, trainType) {
+      const track = String(trackNum);
+      const type = String(trainType);
+
+      if (track === "3" || track === "4") {
+        if (["普通", "普通車", "準急"].includes(type)) return { name: "和泉大宮", file: "omiya_desu.ogg" };
+        if (["区急", "区間急行", "空港急行"].includes(type)) return { name: "春木", file: "haruki_desu.ogg" };
+        if (type === "急行") return { name: "泉大津", file: "otsu_desu.ogg" };
+        if (["サザン", "ラピート", "ラピートβ"].includes(type)) return { name: "堺", file: "sakai_desu.ogg" };
+      } else if (track === "1" || track === "2") {
+        if (["普通", "普通車", "準急"].includes(type)) return { name: "蛸地蔵", file: "tako_desu.ogg" };
+        if (["区急", "区間急行", "空港急行", "急行"].includes(type)) return { name: "貝塚", file: "kaiduka_desu.ogg" };
+        if (["サザン", "ラピート", "ラピートβ"].includes(type)) return { name: "泉佐野", file: "sano_desu.ogg" };
+      }
+      return { name: "泉佐野", file: "sano_desu.ogg" };
+    }
+
+    function loadExternalTimetable() {
+      const scriptUrl = BASE_URL + 'timetable.js?t=' + Date.now();
+      log(`[ダイヤ取得] timetable.js`);
+
+      const oldScript = document.getElementById('timetable-script');
+      if (oldScript) oldScript.remove();
+
+      const script = document.createElement('script');
+      script.id = 'timetable-script';
+      script.src = scriptUrl;
+
+      script.onload = () => {
+        const kudari = (typeof kudariTimetable !== 'undefined') ? kudariTimetable : [];
+        const nobori = (typeof noboriTimetable !== 'undefined') ? noboriTimetable : [];
+        const rawCombined = [...kudari, ...nobori];
+
+        timetables = rawCombined.map((item, index) => {
+          const dep = item.depTime || "";
+          const hasArr = !!(item.arrTime);
+          const arr = hasArr ? item.arrTime : dep;
+          const nextStopInfo = getNextStopInfo(item.trackNum, item.trainType);
+
+          return {
+            id: Date.now() + index,
+            isPass: !!item.isPass,
+            isStandby: !!item.isStandby,
+            hasArrTime: hasArr,
+            arrTime: arr,
+            depTime: dep,
+            trainType: item.trainType || "",
+            trainTypeEn: item.trainTypeEn || getDefaultTypeEnglish(item.trainType),
+            trackNum: item.trackNum || "",
+            destination: item.destination || "",
+            destinationEn: item.destinationEn || getDefaultDestEnglish(item.destination),
+            cars: item.cars || "8",
+            stopsJa: item.stopsJa || null,
+            stopsEn: item.stopsEn || null,
+            connections: item.connections || [],
+            nextStopName: nextStopInfo.name,
+            nextStopFile: nextStopInfo.file
+          };
+        });
+
+        playedBroadcasts.clear();
+        blankUntilTimestamps = { nobori: 0, kudari: 0 };
+        lastUpcomingIds = { nobori: "", kudari: "" };
+        log(`[ダイヤ読込完了] 下り:${kudari.length} / 上り:${nobori.length}`);
+        requestAnimationFrame(scrollRenderLoop);
+      };
+
+      script.onerror = () => {
+        log(`[エラー] timetable.js の読み込み失敗`);
+      };
+
+      document.body.appendChild(script);
+    }
+
+    function renderRowData(prefix, rowIndex, item, isStopsMode, now) {
+      const hhElem = document.getElementById(`${prefix}_row${rowIndex}_hh`);
+      const mmElem = document.getElementById(`${prefix}_row${rowIndex}_mm`);
+      const trackLeft = document.getElementById(`${prefix}_row${rowIndex}_track_left`);
+      const trackRight = document.getElementById(`${prefix}_row${rowIndex}_track_right`);
+      const typeBadge = document.getElementById(`${prefix}_row${rowIndex}_type_badge`);
+      const destBadge = document.getElementById(`${prefix}_row${rowIndex}_dest_badge`);
+      const carsElem = document.getElementById(`${prefix}_row${rowIndex}_cars`);
+      const stopsArea = document.getElementById(`${prefix}_row${rowIndex}_stops_area`);
+      const stopsHeader = document.getElementById(`${prefix}_row${rowIndex}_stops_header`);
+      const stopsWrapper = document.getElementById(`${prefix}_row${rowIndex}_wrapper`);
+      const carGuideElem = document.getElementById(`${prefix}_row${rowIndex}_car_guide`);
+      const appBadge = document.getElementById(`${prefix}_row${rowIndex}_approaching_badge`);
+
+      if (!item) {
+        hhElem.textContent = '--';
+        mmElem.textContent = '--';
+        trackLeft.style.display = 'none';
+        trackRight.style.display = 'none';
+        typeBadge.style.display = 'none';
+        destBadge.style.display = 'none';
+        carsElem.style.display = 'none';
+        stopsArea.style.display = 'none';
+        carGuideElem.style.display = 'none';
+        appBadge.style.display = 'none';
+        return;
+      }
+
+      const [hh, mm] = item.depTime.split(':');
+      hhElem.textContent = hh;
+      mmElem.textContent = mm;
+
+      let isApproachingActive = false;
+      const [appH, appM] = item.arrTime.split(':').map(Number);
+      const arrDate = new Date(now);
+      arrDate.setHours(appH, appM, 0, 0);
+
+      const [depH, depM] = item.depTime.split(':').map(Number);
+      const depDate = new Date(now);
+      depDate.setHours(depH, depM, 0, 0);
+
+      let appTriggerSec = 90;
+      if (!item.isPass && item.isStandby) appTriggerSec = 60;
+
+      const appStartMs = arrDate.getTime() - (appTriggerSec * 1000);
+      let appEndMs = arrDate.getTime();
+      
+      if (!item.hasArrTime || (!item.isPass && item.isStandby)) {
+        appEndMs = depDate.getTime() - (30 * 1000);
+      }
+
+      const nowMs = now.getTime();
+      if (nowMs >= appStartMs && nowMs < appEndMs) {
+        isApproachingActive = true;
+      }
+
+      if (!item.isPass) {
+        updateTrackBadge(item.trackNum, trackLeft, trackRight);
+
+        typeBadge.style.backgroundColor = getTypeColor(item.trainType);
+        document.getElementById(`${prefix}_row${rowIndex}_type_ja`).innerHTML = formatTrainTypeJa(item.trainType);
+        document.getElementById(`${prefix}_row${rowIndex}_type_en`).textContent = item.trainTypeEn;
+
+        document.getElementById(`${prefix}_row${rowIndex}_dest_ja`).textContent = item.destination;
+        document.getElementById(`${prefix}_row${rowIndex}_dest_en`).textContent = item.destinationEn;
+
+        if (isStopsMode) {
+          carsElem.innerHTML = `${item.cars}<span class="unit-ja">両</span>`;
+        } else {
+          carsElem.innerHTML = `${item.cars}<span class="unit-en">cars</span>`;
+        }
+
+        typeBadge.style.display = 'block';
+        destBadge.style.display = 'block';
+        carsElem.style.display = 'block';
+
+        if (isApproachingActive) {
+          stopsArea.style.display = 'none';
+          carGuideElem.style.display = 'none';
+
+          const isBlinkOn = Math.floor(nowMs / 600) % 2 === 0;
+          if (isBlinkOn) {
+            appBadge.textContent = "電車が到着します";
+            appBadge.className = "approaching-badge arrive-color";
+            appBadge.style.display = 'flex';
+          } else {
+            appBadge.style.display = 'none';
+          }
+        } else {
+          appBadge.style.display = 'none';
+
+          const connectText = getConnectList(item);
+          if (isStopsMode || !connectText) {
+            stopsHeader.style.display = "inline";
+            stopsHeader.textContent = "停車駅：";
+            updateJSScroll(stopsWrapper, getStationList(item), false);
+          } else {
+            stopsHeader.style.display = "none";
+            updateJSScroll(stopsWrapper, connectText, true);
+          }
+
+          carGuideElem.textContent = getCarGuideText(item, isStopsMode);
+          stopsArea.style.display = 'flex';
+          carGuideElem.style.display = 'flex';
+        }
+
+      } else {
+        typeBadge.style.backgroundColor = "#000000";
+        document.getElementById(`${prefix}_row${rowIndex}_type_ja`).innerHTML = `<span class="wide-text">通過</span>`;
+        document.getElementById(`${prefix}_row${rowIndex}_type_en`).textContent = "Passing";
+
+        typeBadge.style.display = 'block';
+        trackLeft.style.display = 'none';
+        trackRight.style.display = 'none';
+        destBadge.style.display = 'none';
+        carsElem.style.display = 'none';
+        stopsArea.style.display = 'none';
+        carGuideElem.style.display = 'none';
+
+        if (isApproachingActive) {
+          const isBlinkOn = Math.floor(nowMs / 600) % 2 === 0;
+          if (isBlinkOn) {
+            appBadge.textContent = "電車が通過します";
+            appBadge.className = "approaching-badge pass-color";
+            appBadge.style.display = 'flex';
+          } else {
+            appBadge.style.display = 'none';
+          }
+        } else {
+          appBadge.style.display = 'none';
+        }
+      }
+    }
+
+    let lastUpcomingIds = { nobori: "", kudari: "" };
+    let blankUntilTimestamps = { nobori: 0, kudari: 0 };
+
+    function updateBoardDisplay(now) {
+      if (timetables.length === 0) return;
+
+      const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+      const nowMs = now.getTime();
+
+      const secondInCycle = now.getSeconds() % 10;
+      const isStopsMode = secondInCycle < 6;
+
+      const upcomingNobori = timetables
+        .filter(t => (t.trackNum === "3" || t.trackNum === "4") && (t.depTime + ":00") >= currentTimeStr)
+        .sort((a, b) => a.depTime.localeCompare(b.depTime));
+
+      const upcomingKudari = timetables
+        .filter(t => (t.trackNum === "1" || t.trackNum === "2") && (t.depTime + ":00") >= currentTimeStr)
+        .sort((a, b) => a.depTime.localeCompare(b.depTime));
+
+      const currentNoboriId = upcomingNobori[0] ? String(upcomingNobori[0].id) : "";
+      if (lastUpcomingIds.nobori !== "" && lastUpcomingIds.nobori !== currentNoboriId) {
+        blankUntilTimestamps.nobori = nowMs + 5000;
+      }
+      lastUpcomingIds.nobori = currentNoboriId;
+
+      const currentKudariId = upcomingKudari[0] ? String(upcomingKudari[0].id) : "";
+      if (lastUpcomingIds.kudari !== "" && lastUpcomingIds.kudari !== currentKudariId) {
+        blankUntilTimestamps.kudari = nowMs + 5000;
+      }
+      lastUpcomingIds.kudari = currentKudariId;
+
+      if (nowMs < blankUntilTimestamps.nobori) {
+        for (let i = 1; i <= 4; i++) renderRowData("nobori", i, null, isStopsMode, now);
+      } else {
+        for (let i = 1; i <= 4; i++) renderRowData("nobori", i, upcomingNobori[i - 1] || null, isStopsMode, now);
+      }
+
+      if (nowMs < blankUntilTimestamps.kudari) {
+        for (let i = 1; i <= 4; i++) renderRowData("kudari", i, null, isStopsMode, now);
+      } else {
+        for (let i = 1; i <= 4; i++) renderRowData("kudari", i, upcomingKudari[i - 1] || null, isStopsMode, now);
+      }
+    }
+
+    const typeAudioMale = {
+      "普通": "1local.ogg",
+      "普通車": "1local.ogg",
+      "準急": "2semi.ogg",
+      "区急": "3sub.ogg",
+      "区間急行": "3sub.ogg",
+      "急行": "4exp.ogg",
+      "空港急行": "5airportexp.ogg",
+      "サザン": "6southern.ogg",
+      "ラピートβ": "7rapit.ogg"
+    };
+
+    const destAudioMale = {
+      "なんば": "namba.ogg",
+      "泉佐野": "sano.ogg",
+      "関西空港": "kanku.ogg",
+      "羽倉崎": "hagura.ogg",
+      "樽井": "tarui.ogg",
+      "みさき公園": "misaki.ogg",
+      "和歌山市": "wakayamashi.ogg",
+      "和歌山港": "wakayamako.ogg"
+    };
+
+    let audioCtx = null;
+    let convolverNode = null;
+    let dryGainNode = null;
+    let wetGainNode = null;
+    let isReverbEnabled = false;
+
+    const playedBroadcasts = new Set();
+    let currentPassLoopSource = null;
+
+    function log(message) {
+      const logBox = document.getElementById('logBox');
+      logBox.innerHTML = `<div>${message}</div>`;
+    }
+
+    function getVoicePath(trackNum) {
+      return "sounds/male/";
+    }
+
+    function createReverbBuffer(ctx, duration = 1.8, decay = 2.5) {
+      const sampleRate = ctx.sampleRate;
+      const length = sampleRate * duration;
+      const impulse = ctx.createBuffer(2, length, sampleRate);
+      const left = impulse.getChannelData(0);
+      const right = impulse.getChannelData(1);
+
+      for (let i = 0; i < length; i++) {
+        const n = length - i;
+        left[i] = (Math.random() * 2 - 1) * Math.pow(n / length, decay);
+        right[i] = (Math.random() * 2 - 1) * Math.pow(n / length, decay);
+      }
+      return impulse;
+    }
+
+    function initAudioNodes() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      if (!convolverNode) {
+        convolverNode = audioCtx.createConvolver();
+        convolverNode.buffer = createReverbBuffer(audioCtx);
+
+        dryGainNode = audioCtx.createGain();
+        wetGainNode = audioCtx.createGain();
+
+        dryGainNode.connect(audioCtx.destination);
+        convolverNode.connect(wetGainNode);
+        wetGainNode.connect(audioCtx.destination);
+
+        updateReverbState();
+      }
+    }
+
+    function updateReverbState() {
+      if (!dryGainNode || !wetGainNode) return;
+      if (isReverbEnabled) {
+        dryGainNode.gain.value = 1.0;
+        wetGainNode.gain.value = 0.45;
+      } else {
+        dryGainNode.gain.value = 1.0;
+        wetGainNode.gain.value = 0.0;
+      }
+    }
+
+    document.getElementById('toggleReverbBtn').addEventListener('click', () => {
+      initAudioNodes();
+      isReverbEnabled = !isReverbEnabled;
+      updateReverbState();
+
+      const btn = document.getElementById('toggleReverbBtn');
+      if (isReverbEnabled) {
+        btn.textContent = "リバーブ: ON";
+        btn.classList.add('active');
+      } else {
+        btn.textContent = "リバーブ: OFF";
+        btn.classList.remove('active');
+      }
+    });
+
+    function buildBoardingPositionAudioSequence(item, genderPath) {
+      const type = item.trainType;
+      const carsNum = parseInt(item.cars, 10) || 8;
+
+      if (type === "サザン") {
+        return [
+          `${genderPath}joshaichi/jiyuseki.ogg`,
+          `${genderPath}joshaichi/aka.ogg`,
+          `${genderPath}joshaichi/maru.ogg`,
+          `${genderPath}joshaichi/5_kara.ogg`,
+          `${genderPath}joshaichi/8_de.ogg`,
+          `${genderPath}joshaichi/omachi.ogg`,
+          `${genderPath}train/this_no.ogg`,
+          `${genderPath}carnum/1_kara.ogg`,
+          `${genderPath}carnum/4_ha.ogg`,
+          `${genderPath}joshaichi/shitei.ogg`,
+          `${genderPath}joshaichi/tokkyuu.ogg`
+        ];
+      }
+
+      if (type === "ラピート" || type === "ラピートβ") {
+        return [
+          `${genderPath}joshaichi/rapit.ogg`,
+          `${genderPath}joshaichi/omachi.ogg`,
+          `${genderPath}train/this_ha.ogg`,
+          `${genderPath}cars/zensha.ogg`,
+          `${genderPath}joshaichi/shitei.ogg`,
+          `${genderPath}joshaichi/tokkyuu.ogg`
+        ];
+      }
+
+      let startNum = 1;
+      let endNum = carsNum;
+
+      if (carsNum === 4) { startNum = 3; endNum = 6; }
+      else if (carsNum === 6) { startNum = 2; endNum = 7; }
+      else if (carsNum === 8) { startNum = 1; endNum = 8; }
+
+      return [
+        `${genderPath}joshaichi/aka.ogg`,
+        `${genderPath}joshaichi/maru.ogg`,
+        `${genderPath}joshaichi/${startNum}_kara.ogg`,
+        `${genderPath}joshaichi/${endNum}_de.ogg`,
+        `${genderPath}joshaichi/omachi.ogg`
+      ];
+    }
+
+    // ★ 自動放送の停車駅案内生成（修正：ラピートβ・サザン・関空行き優先）
+    function buildStopsAudioSequence(item, genderPath) {
+      const type = item.trainType;
+
+      if (type === "普通" || type === "普通車") {
+        return [`${genderPath}nextstop/kakueki.ogg`];
+      }
+
+      let stations = [];
+      const track = String(item.trackNum);
+      const isNobori = (track === "3" || track === "4");
+      const dest = item.destination;
+
+      if (isNobori) {
+        if (type === "急行") {
+          stations = ["泉大津", "羽衣", "堺", "天下茶屋", "新今宮", "なんば"];
+        } else if (["サザン", "ラピート", "ラピートβ"].includes(type)) {
+          stations = ["堺", "天下茶屋", "新今宮", "なんば"];
+        } else {
+          stations = [...NOBORI_STATIONS];
+        }
+      } else {
+        if (["ラピート", "ラピートβ"].includes(type)) {
+          // ★ ラピート/ラピートβ（下り）：貝塚は通過
+          stations = ["泉佐野", "りんくうタウン", "関西空港"];
+        } else if (dest === "関西空港") {
+          // 空港急行等（下り）：貝塚に停車
+          stations = ["貝塚", "泉佐野", "りんくうタウン", "関西空港"];
+        } else if (type === "サザン") {
+          stations = [...KUDARI_STATIONS_SOUTHERN];
+        } else {
+          stations = [...KUDARI_STATIONS_MAIN];
+          const destIdx = stations.indexOf(dest);
+          if (destIdx !== -1) {
+            stations = stations.slice(0, destIdx + 1);
+          }
+        }
+      }
+
+      const sequence = [`${genderPath}nextstop/teishaeki.ogg`];
+
+      stations.forEach((stName, idx) => {
+        const baseFile = STATION_AUDIO_MAP[stName] || "sano.ogg";
+        if (idx === stations.length - 1) {
+          const desuFile = baseFile.replace(/\.ogg$/, '_desu.ogg');
+          sequence.push(`${genderPath}station/${desuFile}`);
+        } else {
+          sequence.push(`${genderPath}station/${baseFile}`);
+        }
+      });
+
+      return sequence;
+    }
+
+    function buildConnectionAudioSequence(item, genderPath) {
+      if (!item.connections || item.connections.length === 0) return [];
+
+      const sequence = [];
+
+      item.connections.forEach(conn => {
+        if (conn.type === "ahead") {
+          const nihaFile = STATION_NIHA_AUDIO_MAP[conn.station] || `${STATION_AUDIO_MAP[conn.station] || "sano.ogg"}`;
+          sequence.push(
+            `${genderPath}station/${nihaFile}`,
+            `${genderPath}train/this_ga.ogg`,
+            `${genderPath}senchaku_renraku/senchaku.ogg`
+          );
+        } else if (conn.type === "connect") {
+          const deFile = STATION_DE_AUDIO_MAP[conn.station] || `${STATION_AUDIO_MAP[conn.station] || "sano.ogg"}`;
+          const typeNiFile = TYPE_NI_AUDIO_MAP[conn.targetType] || "1local_ni.ogg";
+
+          sequence.push(
+            `${genderPath}station/${deFile}`,
+            `${genderPath}type/${typeNiFile}`,
+            `${genderPath}senchaku_renraku/renraku.ogg`
+          );
+        }
+      });
+
+      return sequence;
+    }
+
+    function buildApproachAudioSequence(item) {
+      const track = String(item.trackNum);
+      const genderPath = getVoicePath(track);
+
+      const melodyPath = (track === "3" || track === "4") 
+        ? "sounds/melody/nobori.ogg" 
+        : "sounds/melody/kudari.ogg";
+
+      if (item.isPass) {
+        return [
+          melodyPath,
+          `${genderPath}mamonaku.ogg`,
+          `${genderPath}track/${item.trackNum}_wo.ogg`,
+          `${genderPath}train/ga.ogg`,
+          `${genderPath}come_dep/pass.ogg`
+        ];
+      }
+
+      const typeFile = typeAudioMale[item.trainType] || "1local.ogg";
+      const destFile = destAudioMale[item.destination] || "namba.ogg";
+
+      const baseApproach = [
+        melodyPath,
+        `${genderPath}mamonaku.ogg`,
+        `${genderPath}track/${item.trackNum}_ni.ogg`,
+        `${genderPath}type/${typeFile}`,
+        `${genderPath}destination/${destFile}`,
+        `${genderPath}cars/${item.cars}.ogg`,
+        `${genderPath}come_dep/arrive.ogg`
+      ];
+
+      const boardingSequence = buildBoardingPositionAudioSequence(item, genderPath);
+      const stopsSequence = buildStopsAudioSequence(item, genderPath);
+      const connectionSequence = buildConnectionAudioSequence(item, genderPath);
+
+      return [...baseApproach, ...boardingSequence, ...stopsSequence, ...connectionSequence];
+    }
+
+    function buildArrivalAudioSequence(item) {
+      const track = String(item.trackNum);
+      const genderPath = getVoicePath(track);
+
+      const typeFile = typeAudioMale[item.trainType] || "1local.ogg";
+      const baseDestFile = destAudioMale[item.destination] || "namba.ogg";
+      const destDesuFile = baseDestFile.replace(/\.ogg$/, '_desu.ogg');
+
+      return [
+        `${genderPath}track/${item.trackNum}_no.ogg`,
+        `${genderPath}train/ha.ogg`,
+        `${genderPath}type/${typeFile}`,
+        `${genderPath}destination/${destDesuFile}`,
+        `${genderPath}nextstop/next.ogg`,
+        `${genderPath}station/${item.nextStopFile}`
+      ];
+    }
+
+    function buildDepartureAudioSequence(item) {
+      const track = String(item.trackNum);
+      const genderPath = getVoicePath(track);
+      const isLimitedExp = ["サザン", "ラピート", "ラピートβ"].includes(item.trainType);
+
+      let melodyPath = "";
+      if (track === "3" || track === "4") {
+        melodyPath = isLimitedExp ? "sounds/melody/genki.ogg" : "sounds/melody/akogare.ogg";
+      } else {
+        melodyPath = isLimitedExp ? "sounds/melody/miyabi.ogg" : "sounds/melody/kirameki.ogg";
+      }
+
+      const baseTypeFile = typeAudioMale[item.trainType] || "1local.ogg";
+      const typeNoFile = baseTypeFile.replace(/\.ogg$/, '_no.ogg');
+
+      return [
+        melodyPath,
+        `${genderPath}track/${item.trackNum}.ogg`,
+        `${genderPath}type/${typeNoFile}`,
+        `${genderPath}come_dep/hassha.ogg`
+      ];
+    }
+
+    async function playAudioSequenceWithOverlap(relativePaths, onComplete) {
+      initAudioNodes();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+      try {
+        const buffers = await Promise.all(relativePaths.map(async (path) => {
+          const fullUrl = BASE_URL + path;
+          const res = await fetch(fullUrl);
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status} (${path})`);
+          return await audioCtx.decodeAudioData(await res.arrayBuffer());
+        }));
+
+        let startTime = audioCtx.currentTime;
+        const OVERLAP_TIME = 0.7;
+        const GAP_TIME = 1.0;
+
+        buffers.forEach((buffer, index) => {
+          const path = relativePaths[index];
+
+          const isStartOfBoardingPos = (
+            path.includes('joshaichi/aka.ogg') ||
+            path.includes('joshaichi/jiyuseki.ogg') ||
+            path.includes('joshaichi/rapit.ogg')
+          );
+
+          const isStartOfStops = (
+            path.includes('nextstop/teishaeki.ogg') ||
+            path.includes('nextstop/kakueki.ogg')
+          );
+
+          const isStartOfConnect = (
+            path.includes('_niha.ogg') ||
+            (path.includes('station/') && path.includes('_de.ogg'))
+          );
+
+          if (isStartOfBoardingPos || isStartOfStops || isStartOfConnect) {
+            startTime += GAP_TIME;
+          }
+
+          const source = audioCtx.createBufferSource();
+          source.buffer = buffer;
+
+          source.connect(dryGainNode);
+          source.connect(convolverNode);
+
+          source.start(startTime);
+
+          const duration = buffer.duration;
+          const nextOffset = Math.max(0.1, duration - OVERLAP_TIME);
+          startTime += nextOffset;
+
+          if (index === buffers.length - 1 && onComplete) {
+            source.onended = onComplete;
+          }
+        });
+
+      } catch (err) {
+        log(`[再生エラー] ${err.message}`);
+      }
+    }
+
+    async function playPassMelodyLoop(durationSec = 40) {
+      initAudioNodes();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+      const fullUrl = BASE_URL + "sounds/melody/pass.ogg";
+
+      try {
+        const res = await fetch(fullUrl);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const buffer = await audioCtx.decodeAudioData(await res.arrayBuffer());
+
+        if (currentPassLoopSource) {
+          try { currentPassLoopSource.stop(); } catch(e){}
+        }
+
+        const source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+
+        source.connect(dryGainNode);
+        source.connect(convolverNode);
+
+        source.start();
+        currentPassLoopSource = source;
+
+        log(`[通過メロディ再生中]`);
+
+        setTimeout(() => {
+          if (currentPassLoopSource === source) {
+            try { source.stop(); } catch(e){}
+            currentPassLoopSource = null;
+          }
+        }, durationSec * 1000);
+
+      } catch (err) {
+        log(`[再生エラー] ${err.message}`);
+      }
+    }
+
+    function checkBroadcast(now) {
+      timetables.forEach((item) => {
+        const [appH, appM] = item.arrTime.split(':').map(Number);
+        const appTargetDate = new Date(now);
+        appTargetDate.setHours(appH, appM, 0, 0);
+
+        let appTriggerSeconds = 90;
+        if (!item.isPass && item.isStandby) appTriggerSeconds = 60;
+
+        const appDiffSec = Math.floor((appTargetDate.getTime() - now.getTime()) / 1000);
+
+        if (appDiffSec === appTriggerSeconds) {
+          const key = `${item.id}_app_${appTriggerSeconds}`;
+          if (!playedBroadcasts.has(key)) {
+            playedBroadcasts.add(key);
+            log(`[接近放送] ${item.trackNum}番線`);
+
+            const sequence = buildApproachAudioSequence(item);
+            if (item.isPass) {
+              playAudioSequenceWithOverlap(sequence, () => playPassMelodyLoop(40));
+            } else {
+              playAudioSequenceWithOverlap(sequence);
+            }
+          }
+        }
+
+        if (!item.isPass) {
+          const arrTriggerSeconds = item.isStandby ? 10 : 30;
+          const timeStr = item.isStandby ? item.arrTime : item.depTime;
+          const [arrH, arrM] = timeStr.split(':').map(Number);
+          const arrTargetDate = new Date(now);
+          arrTargetDate.setHours(arrH, arrM, 0, 0);
+
+          const arrDiffSec = Math.floor((arrTargetDate.getTime() - now.getTime()) / 1000);
+
+          if (arrDiffSec === arrTriggerSeconds) {
+            const key = `${item.id}_arr_${arrTriggerSeconds}`;
+            if (!playedBroadcasts.has(key)) {
+              playedBroadcasts.add(key);
+              log(`[到着放送] ${item.trackNum}番線`);
+              playAudioSequenceWithOverlap(buildArrivalAudioSequence(item));
+            }
+          }
+        }
+
+        if (!item.isPass) {
+          const [depH, depM] = item.depTime.split(':').map(Number);
+          const depTargetDate = new Date(now);
+          depTargetDate.setHours(depH, depM, 0, 0);
+
+          const depDiffSec = Math.floor((depTargetDate.getTime() - now.getTime()) / 1000);
+
+          if (depDiffSec === 20) {
+            const key = `${item.id}_dep_20`;
+            if (!playedBroadcasts.has(key)) {
+              playedBroadcasts.add(key);
+              log(`[発車放送] ${item.trackNum}番線`);
+              playAudioSequenceWithOverlap(buildDepartureAudioSequence(item));
+            }
+          }
+        }
+      });
+    }
+
+    loadBoardImages();
+    loadExternalTimetable();
+  </script>
+</body>
+</html>
